@@ -1,61 +1,31 @@
-use serialport::{available_ports, SerialPortType};
+use std::{thread, io};
+use std::time::Duration;
+use serialport::{available_ports, SerialPort, SerialPortType};
+
+const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
+const HEARTBEAT_MESSAGE: &str = "OK";
+
 
 fn main() {
-    match available_ports() {
-        Ok(ports) => {
-            match ports.len() {
-                0 => println!("No ports found."),
-                1 => println!("Found 1 port:"),
-                n => println!("Found {} ports:", n),
-            };
-            for p in ports {
-                println!("  {}", p.port_name);
-                match p.port_type {
-                    SerialPortType::UsbPort(info) => {
-                        println!("    Type: USB");
-                        println!("    VID:{:04x} PID:{:04x}", info.vid, info.pid);
-                        println!(
-                            "     Serial Number: {}",
-                            info.serial_number.as_ref().map_or("", String::as_str)
-                        );
-                        println!(
-                            "      Manufacturer: {}",
-                            info.manufacturer.as_ref().map_or("", String::as_str)
-                        );
-                        println!(
-                            "           Product: {}",
-                            info.product.as_ref().map_or("", String::as_str)
-                        );
-                        #[cfg(feature = "usbportinfo-interface")]
-                        println!(
-                            "         Interface: {}",
-                            info.interface
-                                .as_ref()
-                                .map_or("".to_string(), |x| format!("{:02x}", *x))
-                        );
-                    }
-                    SerialPortType::BluetoothPort => {
-                        println!("    Type: Bluetooth");
-                    }
-                    SerialPortType::PciPort => {
-                        println!("    Type: PCI");
-                    }
-                    SerialPortType::Unknown => {
-                        println!("    Type: Unknown");
-                    }
-                }
-            }
-        }
-        Err(e) => {
-            eprintln!("{:?}", e);
-            eprintln!("Error listing serial ports");
-        }
-    }
+    repeat(setup());
 }
 
-fn setup(){
-    //TODO find serial port of microcontroller and connect to it
+fn setup() -> Box<dyn SerialPort>{
+    //TODO find serial port of microcontroller
+    let port = serialport::new("/dev/pts/4", 9600)
+        .open()
+        .expect("Failed to open port");
+    return port;
+
 }
-fn heartbeat(){
-    //TODO send heartbeat every interval, then sleep and repeat
+fn repeat(mut port:Box<dyn SerialPort>){
+    loop {
+        match port.write(HEARTBEAT_MESSAGE.as_bytes()) {
+            Ok(bytes) => (),
+            // TODO log timeout error?
+            Err(ref e) if e.kind() == io::ErrorKind::TimedOut => (),
+            Err(e) => eprintln!("{:?}", e),
+        }
+        thread::sleep(HEARTBEAT_INTERVAL);
+    }
 }
