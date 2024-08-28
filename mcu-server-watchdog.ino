@@ -1,5 +1,5 @@
 const int HEARTBEAT_MAX_DELAY_MILLIS = 20000;  //this is coupled to the HEARTBEAT_INTERVAL in src/main.rs
-const int PIN_SWITCH = 13;
+const int PIN_SWITCH = 2;
 
 unsigned long startTimeMillis;
 void setup() {
@@ -17,6 +17,7 @@ void loop(){
   if (tickMillis > HEARTBEAT_MAX_DELAY_MILLIS){rst();}
   if (Serial.available() > 0) { // if something has been written to the serial port
     startTimeMillis = millis();
+    clearSerial();
   }
 }
 
@@ -24,7 +25,7 @@ void loop(){
 void rst(){
   //TODO connect the RST pins on the motherboard
   Serial.println("Error!");
-  digialWrite(PIN_SWITCH, LOW);
+  digitalWrite(PIN_SWITCH, LOW);
   delay(500);
   digitalWrite(PIN_SWITCH, HIGH);
   waitForSerial();
@@ -37,3 +38,8 @@ void waitForSerial(){
     while(Serial.available() == 0){}
 }
 
+void clearSerial(){
+  while (Serial.available()>0){
+    char t = Serial.read();
+  }
+}

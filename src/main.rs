@@ -1,9 +1,10 @@
 use std::{thread, io};
 use std::time::Duration;
-use serialport::{available_ports, SerialPort, SerialPortType};
+use serialport::SerialPort;
 
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
 const HEARTBEAT_MESSAGE: &str = "OK";
+const WATCHDOG_DEVICE: &str = "/dev/watchdog";
 
 
 fn main() {
@@ -12,7 +13,7 @@ fn main() {
 
 fn setup() -> Box<dyn SerialPort>{
     //TODO find serial port of microcontroller
-    let port = serialport::new("/dev/pts/4", 9600)
+    let port = serialport::new(WATCHDOG_DEVICE, 9600)
         .open()
         .expect("Failed to open port");
     return port;
