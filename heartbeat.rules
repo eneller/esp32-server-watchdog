@@ -1,1 +1,2 @@
+# should be in /etc/udev/rules.d/
 ACTION=="add", ATTRS{idProduct}=="7523", ATTRS{idVendor}=="1a86", NAME="watchdog"
