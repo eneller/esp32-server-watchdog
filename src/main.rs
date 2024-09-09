@@ -4,7 +4,7 @@ use serialport::SerialPort;
 
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
 const HEARTBEAT_MESSAGE: &str = "OK";
-const WATCHDOG_DEVICE: &str = "/dev/watchdog";
+const WATCHDOG_DEVICE: &str = "/dev/watchdog0";
 
 
 fn main() {
@@ -22,7 +22,7 @@ fn setup() -> Box<dyn SerialPort>{
 fn repeat(mut port:Box<dyn SerialPort>){
     loop {
         match port.write(HEARTBEAT_MESSAGE.as_bytes()) {
-            Ok(bytes) => (),
+            Ok(_) => (),
             // TODO log timeout error?
             Err(ref e) if e.kind() == io::ErrorKind::TimedOut => (),
             Err(e) => eprintln!("{:?}", e),
